@@ -40,16 +40,23 @@ public class ExcelParse {
 	int FIRSTCOLUMN = 3, FIRSTROW = 7, LASTCOLUMN = 32, LASTROW = 34;
 	private int dayoffset;
 	
+	ArrayList<Period> periods = new ArrayList<Period>();
+	
 	public ExcelParse(String filename){
 		try {
 			InputStream in = new FileInputStream(filename); // open file buffer
 			XSSFWorkbook wbo = new XSSFWorkbook(in); // pass file buffer to workbook
-			sheet = wbo.getSheetAt(34); // open sheet 35 which opens a week's schedule
+			sheet = wbo.getSheetAt(33); // open sheet 35 which opens a week's schedule
 		
 			evaluator = wbo.getCreationHelper().createFormulaEvaluator(); // instantiate evaluator, which evaluates excel formulas
 
-			getMetadata();
-			new ICalExporter("").addEvents(getClasses());
+			for(int i =3;i<35;i++){
+				System.out.println("SHEET " +i);
+				sheet = wbo.getSheetAt(i);
+				getMetadata();
+				getClasses();
+			}
+			new ICalExporter("all").addEvents(periods);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -58,7 +65,6 @@ public class ExcelParse {
 		
 	}
 	public ArrayList<Period> getClasses(){
-		ArrayList<Period> periods = new ArrayList<Period>();
 		
 		List<CellRangeAddress> mergedCells = sheet.getMergedRegions();
 		System.out.println(mergedCells);

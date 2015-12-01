@@ -33,13 +33,15 @@ public class ICalExporter {
 	private TimeZone timezone;
 	private VTimeZone tz;
 	private UidGenerator ug;
+	private String name;
 
 	public ICalExporter(String name){
+		this.name = name;
 		calendar = new Calendar();
 		calendar.getProperties().add(new ProdId("-//Events Calendar//iCal4j 1.0//EN"));
 		calendar.getProperties().add(Version.VERSION_2_0);
 		calendar.getProperties().add(CalScale.GREGORIAN);
-		calendar.getProperties().add(new XProperty("X-WR-CALNAME","week 33"));
+		calendar.getProperties().add(new XProperty("X-WR-CALNAME",name));
 		TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
 		timezone = registry.getTimeZone("America/Mexico_City");
 		tz = timezone.getVTimeZone();
@@ -73,7 +75,7 @@ public class ICalExporter {
 			//e.getProperties().getProperty(Property.DTSTART).getParameters().add(tzParam);
 		}
 		try {
-			FileOutputStream fout = new FileOutputStream("cal.ics");
+			FileOutputStream fout = new FileOutputStream(name+".ics");
 			
 			CalendarOutputter outputter = new CalendarOutputter();
 			outputter.output(calendar, fout);
