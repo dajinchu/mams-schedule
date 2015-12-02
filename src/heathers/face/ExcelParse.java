@@ -41,6 +41,8 @@ public class ExcelParse {
 	private int dayoffset;
 	
 	ArrayList<Period> periods = new ArrayList<Period>();
+	private int firstRow;
+	private int firstCol;
 	
 	public ExcelParse(String filename){
 		try {
@@ -50,9 +52,10 @@ public class ExcelParse {
 		
 			evaluator = wbo.getCreationHelper().createFormulaEvaluator(); // instantiate evaluator, which evaluates excel formulas
 
-			for(int i =3;i<35;i++){
+			for(int i =3;i<4;i++){
 				System.out.println("SHEET " +i);
 				sheet = wbo.getSheetAt(i);
+				System.out.println("CELL TYPE "+evaluator.evaluate(sheet.getRow(33).getCell(31)).getCellType());
 				getMetadata();
 				getClasses();
 			}
@@ -72,20 +75,32 @@ public class ExcelParse {
 		for(CellRangeAddress merge : mergedCells){
 			if(!isDuringSchool(merge))continue; //skip this cellrange if it's not during school
 			
-			c = sheet.getRow(merge.getFirstRow()).getCell(merge.getFirstColumn());
+			firstRow = merge.getFirstRow();
+			firstCol = merge.getFirstColumn();
 			
-			System.out.println(parseCell(c)+" "+merge.getFirstRow()+" "+merge.getFirstColumn());
+			c = sheet.getRow(firstRow).getCell(firstCol);
+			
+			System.out.println(parseCell(c)+" "+firstRow+" "+firstCol);
 			
 			if(c.getCellType()==Cell.CELL_TYPE_STRING){
 				System.out.println("String");
 				
-				dayoffset = (int)Math.floor((merge.getFirstColumn()-3)/6.0);
+				dayoffset = (int)Math.floor((firstCol-3)/6.0);
 				
 				today.set(monday.get(Calendar.YEAR), 
 						monday.get(Calendar.MONTH), 
 						monday.get(Calendar.DATE)+dayoffset,
 						0,0,0);
-				Date start = sheet.getRow(merge.getFirstRow()-1).getCell(0).getDateCellValue();//TODO PROBLEM
+				
+				try{
+					if(evaluator.evaluate(sheet.getRow(firstRow-1).getCell(firstCol)).getCellType()!=Cell.CELL_TYPE_NUMERIC){
+						firstRow++;
+					}
+				}catch(NullPointerException e){
+					firstRow++;
+				}
+				
+				Date start = sheet.getRow(firstRow-1).getCell(0).getDateCellValue();//TODO PROBLEM
 				Date end = sheet.getRow(merge.getLastRow()+1).getCell(0).getDateCellValue();
 				startCal.setTime(start);
 				endCal.setTime(end);
