@@ -71,7 +71,7 @@ public class ICalExporter {
 			e.getProperties().add(tz.getTimeZoneId());
 			e.getProperties().add(ug.generateUid());
 			calendar.getComponents().add(e);
-			period.print();
+			//period.print();
 			//e.getProperties().getProperty(Property.DTSTART).getParameters().add(tzParam);
 		}
 		try {

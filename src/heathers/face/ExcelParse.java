@@ -52,10 +52,9 @@ public class ExcelParse {
 		
 			evaluator = wbo.getCreationHelper().createFormulaEvaluator(); // instantiate evaluator, which evaluates excel formulas
 
-			for(int i =3;i<4;i++){
+			for(int i =3;i<39;i++){
 				System.out.println("SHEET " +i);
 				sheet = wbo.getSheetAt(i);
-				System.out.println("CELL TYPE "+evaluator.evaluate(sheet.getRow(33).getCell(31)).getCellType());
 				getMetadata();
 				getClasses();
 			}
@@ -70,7 +69,6 @@ public class ExcelParse {
 	public ArrayList<Period> getClasses(){
 		
 		List<CellRangeAddress> mergedCells = sheet.getMergedRegions();
-		System.out.println(mergedCells);
 		Cell c;
 		for(CellRangeAddress merge : mergedCells){
 			if(!isDuringSchool(merge))continue; //skip this cellrange if it's not during school
@@ -80,11 +78,8 @@ public class ExcelParse {
 			
 			c = sheet.getRow(firstRow).getCell(firstCol);
 			
-			System.out.println(parseCell(c)+" "+firstRow+" "+firstCol);
 			
-			if(c.getCellType()==Cell.CELL_TYPE_STRING){
-				System.out.println("String");
-				
+			if(c.getCellType()==Cell.CELL_TYPE_STRING){		
 				dayoffset = (int)Math.floor((firstCol-3)/6.0);
 				
 				today.set(monday.get(Calendar.YEAR), 
@@ -104,31 +99,41 @@ public class ExcelParse {
 				Date end = sheet.getRow(merge.getLastRow()+1).getCell(0).getDateCellValue();
 				startCal.setTime(start);
 				endCal.setTime(end);
-				System.out.println(startCal.get(Calendar.HOUR_OF_DAY));
-
+				//System.out.println(startCal.get(Calendar.HOUR_OF_DAY));
+				
 				today.set(Calendar.HOUR_OF_DAY,startCal.get(Calendar.HOUR_OF_DAY));
 				today.set(Calendar.MINUTE,startCal.get(Calendar.MINUTE));
-				if(today.get(Calendar.HOUR_OF_DAY)<7){
-					today.set(Calendar.PM, 1);
+				if(today.get(Calendar.HOUR)<7){
+					today.set(Calendar.AM_PM, Calendar.PM);
+				}else{
+					today.set(Calendar.AM_PM, Calendar.AM);
 				}
 				start = today.getTime();
 				today.set(Calendar.HOUR_OF_DAY,endCal.get(Calendar.HOUR_OF_DAY));
 				today.set(Calendar.MINUTE,endCal.get(Calendar.MINUTE));
-				if(today.get(Calendar.HOUR_OF_DAY)<7){
-					today.set(Calendar.PM, 1);
+				if(today.get(Calendar.HOUR)<7){
+					today.set(Calendar.AM_PM, Calendar.PM);
+				}else{
+					today.set(Calendar.AM_PM, Calendar.AM);
 				}
 				end = today.getTime();
 				
+				
+				System.out.println("Parsed "+"'"+parseCell(c)+"'"+" fromw row "+firstRow+", col "+firstCol);
 				cal.setTime(start);
-				System.out.println(cal.get(Calendar.MONTH)+"/"+cal.get(Calendar.DAY_OF_MONTH)+"/"+cal.get(Calendar.YEAR));
-				System.out.println(cal.get(Calendar.HOUR_OF_DAY)+":"+cal.get(Calendar.MINUTE));
-				
-				
+				System.out.println("  Started at "+calToString(cal));
+				cal.setTime(end);
+				System.out.println("  Ended at   "+calToString(cal));
+								
 				String name = parseCell(c);
 				periods.add(new Period(start,end,name));
 			}
 		}
 		return periods;
+	}
+	public String calToString(Calendar cal){
+		return cal.get(Calendar.MONTH)+"/"+cal.get(Calendar.DAY_OF_MONTH)+"/"+cal.get(Calendar.YEAR)+" "+
+				cal.get(Calendar.HOUR_OF_DAY)+":"+cal.get(Calendar.MINUTE)+" PM:"+cal.get(Calendar.AM_PM);
 	}
 	public boolean isDuringSchool(CellRangeAddress range){
 		if(range.getFirstColumn()>=FIRSTCOLUMN &&
