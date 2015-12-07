@@ -40,9 +40,14 @@ public class ExcelParse {
 	int FIRSTCOLUMN = 3, FIRSTROW = 7, LASTCOLUMN = 32, LASTROW = 34;
 	private int dayoffset;
 	
-	ArrayList<Period> periods = new ArrayList<Period>();
+	ArrayList<Section> sections = new ArrayList<Section>();
+	Section advF=new Section();
+	Section intF=new Section();
 	private int firstRow;
 	private int firstCol;
+	private double sectionNum;
+	private Period add;
+	private int mergeWidth;
 	
 	public ExcelParse(String filename){
 		try {
@@ -52,13 +57,20 @@ public class ExcelParse {
 		
 			evaluator = wbo.getCreationHelper().createFormulaEvaluator(); // instantiate evaluator, which evaluates excel formulas
 
+			sections.add(new Section());
+			sections.add(new Section());
+			sections.add(new Section());
+			
 			for(int i =3;i<39;i++){
 				System.out.println("SHEET " +i);
 				sheet = wbo.getSheetAt(i);
 				getMetadata();
 				getClasses();
 			}
-			new ICalExporter("all").addEvents(periods);
+			new ICalExporter("aSection").addEvents(sections.get(0));
+			new ICalExporter("bSectionAdvanced").addEvents(advF.merge(sections.get(1)));
+			new ICalExporter("bSectionIntermediate").addEvents(intF.merge(sections.get(1)));
+			new ICalExporter("cSection").addEvents(sections.get(2));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -66,7 +78,7 @@ public class ExcelParse {
 		}
 		
 	}
-	public ArrayList<Period> getClasses(){
+	public void getClasses(){
 		
 		List<CellRangeAddress> mergedCells = sheet.getMergedRegions();
 		Cell c;
@@ -81,6 +93,7 @@ public class ExcelParse {
 			
 			if(c.getCellType()==Cell.CELL_TYPE_STRING){		
 				dayoffset = (int)Math.floor((firstCol-3)/6.0);
+				sectionNum = ((firstCol-3)%6)/2f;
 				
 				today.set(monday.get(Calendar.YEAR), 
 						monday.get(Calendar.MONTH), 
@@ -126,10 +139,25 @@ public class ExcelParse {
 				System.out.println("  Ended at   "+calToString(cal));
 								
 				String name = parseCell(c);
-				periods.add(new Period(start,end,name));
+				
+				add = new Period(start,end,name);
+				mergeWidth = merge.getLastColumn()-merge.getFirstColumn();
+				if(mergeWidth==5){
+					//Whole school event
+					sections.get(0).periods.add(add);
+					sections.get(1).periods.add(add);
+					sections.get(2).periods.add(add);
+				}else if(mergeWidth==0){
+					if(sectionNum==1){
+						advF.periods.add(add);
+					}else if(sectionNum==1.5){
+						intF.periods.add(add);
+					}
+				}else{
+					sections.get((int)sectionNum).periods.add(add);
+				}
 			}
 		}
-		return periods;
 	}
 	public String calToString(Calendar cal){
 		return cal.get(Calendar.MONTH)+"/"+cal.get(Calendar.DAY_OF_MONTH)+"/"+cal.get(Calendar.YEAR)+" "+

@@ -47,7 +47,7 @@ public class ICalExporter {
 		tz = timezone.getVTimeZone();
 	}
 	
-	public void addEvents(ArrayList<Period> periods){
+	public void addEvents(Section section){
 		/*VTimeZone tz = new VTimeZone();
 		TzId tzParam = new TzId(tz.getProperties().getProperty(Property.TZID)
 		         .getValue());*/
@@ -66,7 +66,7 @@ public class ICalExporter {
 		christmas.getProperties().add(tz.getTimeZoneId());
 		christmas.getProperties().add(ug.generateUid());
 		calendar.getComponents().add(christmas);
-		for(Period period: periods){
+		for(Period period: section.periods){
 			VEvent e = new VEvent(new DateTime(period.start),new DateTime(period.end),period.name);
 			e.getProperties().add(tz.getTimeZoneId());
 			e.getProperties().add(ug.generateUid());
