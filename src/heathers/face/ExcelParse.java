@@ -165,9 +165,7 @@ public class ExcelParse {
 	}
 	public boolean isDuringSchool(CellRangeAddress range){
 		if(range.getFirstColumn()>=FIRSTCOLUMN &&
-				range.getFirstRow()>=FIRSTROW &&
-				range.getLastRow()<=LASTROW &&
-				range.getLastColumn()<=LASTCOLUMN){
+				range.getFirstRow()>=FIRSTROW){
 			return true;
 		}
 		return false;
