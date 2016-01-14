@@ -1,4 +1,4 @@
-package heathers.face;
+package com.gmail.dajinchu;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -36,15 +36,16 @@ public class ICalExporter {
 	private String name;
 
 	public ICalExporter(String name){
-		this.name = name;
+		this.name = "2015-2016 "+name;
 		calendar = new Calendar();
 		calendar.getProperties().add(new ProdId("-//Events Calendar//iCal4j 1.0//EN"));
 		calendar.getProperties().add(Version.VERSION_2_0);
 		calendar.getProperties().add(CalScale.GREGORIAN);
 		calendar.getProperties().add(new XProperty("X-WR-CALNAME",name));
 		TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
-		timezone = registry.getTimeZone("America/Mexico_City");
+		timezone = registry.getTimeZone("America/New_York");
 		tz = timezone.getVTimeZone();
+		calendar.getComponents().add(tz);
 	}
 	
 	public void addEvents(Section section){

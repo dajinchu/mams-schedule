@@ -1,4 +1,4 @@
-package heathers.face;
+package com.gmail.dajinchu;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -27,6 +27,10 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ExcelParse {
+	private static final int MONDAYROW = 2;
+	private static final int MONDAYCOL = 3;
+	
+	
 	private XSSFFormulaEvaluator evaluator;
 	private XSSFSheet sheet;
 	private List<CellRangeAddress> mergedRegions;
@@ -37,7 +41,7 @@ public class ExcelParse {
 	Calendar monday = Calendar.getInstance();
 	Calendar today = Calendar.getInstance();
 	
-	int FIRSTCOLUMN = 3, FIRSTROW = 7, LASTCOLUMN = 32, LASTROW = 34;
+	int FIRSTCOLUMN = 3, FIRSTROW = 6, LASTCOLUMN = 32, LASTROW = 33;
 	private int dayoffset;
 	
 	ArrayList<Section> sections = new ArrayList<Section>();
@@ -53,7 +57,6 @@ public class ExcelParse {
 		try {
 			InputStream in = new FileInputStream(filename); // open file buffer
 			XSSFWorkbook wbo = new XSSFWorkbook(in); // pass file buffer to workbook
-			sheet = wbo.getSheetAt(33); // open sheet 35 which opens a week's schedule
 		
 			evaluator = wbo.getCreationHelper().createFormulaEvaluator(); // instantiate evaluator, which evaluates excel formulas
 
@@ -61,16 +64,16 @@ public class ExcelParse {
 			sections.add(new Section());
 			sections.add(new Section());
 			
-			for(int i =3;i<39;i++){
+			for(int i = 2; i<22;i++){
 				System.out.println("SHEET " +i);
 				sheet = wbo.getSheetAt(i);
 				getMetadata();
 				getClasses();
 			}
-			new ICalExporter("aSection").addEvents(sections.get(0));
-			new ICalExporter("bSectionAdvanced").addEvents(advF.merge(sections.get(1)));
-			new ICalExporter("bSectionIntermediate").addEvents(intF.merge(sections.get(1)));
-			new ICalExporter("cSection").addEvents(sections.get(2));
+			new ICalExporter("A Section").addEvents(sections.get(0));
+			new ICalExporter("B Section Advanced").addEvents(advF.merge(sections.get(1)));
+			new ICalExporter("B Section Intermediate").addEvents(intF.merge(sections.get(1)));
+			new ICalExporter("C Section").addEvents(sections.get(2));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -108,6 +111,7 @@ public class ExcelParse {
 					firstRow++;
 				}
 				
+				System.out.println("trying"+ firstRow+", "+firstCol);
 				Date start = sheet.getRow(firstRow-1).getCell(0).getDateCellValue();//TODO PROBLEM
 				Date end = sheet.getRow(merge.getLastRow()+1).getCell(0).getDateCellValue();
 				startCal.setTime(start);
@@ -142,7 +146,7 @@ public class ExcelParse {
 				
 				add = new Period(start,end,name);
 				mergeWidth = merge.getLastColumn()-merge.getFirstColumn();
-				if(mergeWidth==5){
+				if(mergeWidth>=2){
 					//Whole school event
 					sections.get(0).periods.add(add);
 					sections.get(1).periods.add(add);
@@ -165,7 +169,9 @@ public class ExcelParse {
 	}
 	public boolean isDuringSchool(CellRangeAddress range){
 		if(range.getFirstColumn()>=FIRSTCOLUMN &&
-				range.getFirstRow()>=FIRSTROW){
+				range.getFirstRow()>=FIRSTROW &&
+				range.getLastColumn()<=LASTCOLUMN &&
+				range.getLastRow()<=LASTROW){
 			return true;
 		}
 		return false;
@@ -260,11 +266,11 @@ public class ExcelParse {
 	}*/
 	
 	public void getMetadata(){
-		Date d = sheet.getRow(3).getCell(3).getDateCellValue();
+		Date d = sheet.getRow(MONDAYROW).getCell(MONDAYCOL).getDateCellValue();
 		monday.setTime(d);
 	}
 	
 	public static void main(String[] args){
-		new ExcelParse("src/schedules.xlsx");
+		new ExcelParse("src/15-16.xlsx");
 	}
 }
